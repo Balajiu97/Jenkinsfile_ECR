@@ -5,16 +5,20 @@ pipeline {
     environment {
         AWS_REGION = 'ap-south-1'
         AWS_ACCOUNT_ID = '263336852738'    
-        ECR_REPO_NAME = 'Balaji/balaji-ecr-repo'           
+        ECR_REPO_NAME = 'Balajiu97/balaji-ecr-repo'           
         IMAGE_TAG = 'v2'
         ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         FULL_IMAGE_NAME = "${ECR_REGISTRY}/${ECR_REPO_NAME}:${IMAGE_TAG}"
     }
 
-    stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                checkout scm
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/main']],
+                          userRemoteConfigs: [[
+                              url: 'https://github.com/Balajiu97/Jenkinsfile_ECR.git'
+                          ]]
+                ])
             }
         }
 
