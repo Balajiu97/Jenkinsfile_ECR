@@ -3,53 +3,41 @@ pipeline {
 
     environment {
         AWS_REGION = 'ap-south-1'
-        AWS_ACCOUNT_ID = '263336852738'    
-        ECR_REPO_NAME = 'balaji_ecr-repo'           
-        IMAGE_TAG = 'v2'
-        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        FULL_IMAGE_NAME = "${ECR_REGISTRY}/${ECR_REPO_NAME}:${IMAGE_TAG}"
+        ECR_REPO_NAME = 'balaji-ecr-repo'
+        IMAGE_TAG = "latest"
+        ACCOUNT_ID = '<263336852738>'
+        ECR_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git 'https://github.com/your-username/your-repo.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build -t $ECR_REPO_NAME:$IMAGE_TAG .'
-                }
-            }
-        }
-
-        stage('Tag Image') {
-            steps {
-                script {
-                    sh 'docker tag $ECR_REPO_NAME:$IMAGE_TAG $FULL_IMAGE_NAME'
-                }
+                sh "docker build -t ${ECR_REPO_NAME}:${IMAGE_TAG} ."
             }
         }
 
         stage('Login to ECR') {
             steps {
-                script {
-                    sh '''
-                        aws ecr get-login-password --region $AWS_REGION | \
-                        docker login --username AWS --password-stdin $ECR_REGISTRY
-                    '''
-                }
+                sh """
+                    aws --region $AWS_REGION ecr get-login-password \
+                    | docker login --username AWS --password-stdin $ECR_URI
+                """
             }
         }
 
-        stage('Push to ECR') {
+        stage('Tag and Push Image') {
             steps {
-                script {
-                    sh 'docker push $FULL_IMAGE_NAME'
-                }
+                sh """
+                    docker tag ${ECR_REPO_NAME}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}
+                    docker push ${ECR_URI}:${IMAGE_TAG}
+                """
             }
-        }
-    }
+        }
+    }
 }
