@@ -5,7 +5,7 @@ pipeline {
         AWS_REGION = 'ap-south-1'
         ECR_REPO_NAME = 'balaji-ecr-repo'
         IMAGE_TAG = "latest"
-        ACCOUNT_ID = '<263336852738>'
+        ACCOUNT_ID = '263336852738'
         ECR_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}"
     }
 
