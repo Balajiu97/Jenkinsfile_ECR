@@ -2,15 +2,15 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'your-ecr-repo-name'
-        AWS_REGION = 'your-region'
-        ECR_URI = "ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}"
+        IMAGE_NAME = 'balaji-ecs_jenkins'
+        AWS_REGION = 'ap-south-1'
+        ECR_URI = "263336852738.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/your-user/your-repo.git'
+                git 'https://github.com/Balajiu97/Jenkinsfile_ECR.git'
             }
         }
 
@@ -39,17 +39,15 @@ pipeline {
                     """
                 }
             }
-        }
-
-        stage('Deploy to EKS') {
+        }
+        stage('Cleanup') {
             steps {
                 script {
-                    sh """
-                        aws eks update-kubeconfig --region $AWS_REGION --name your-cluster-name
-                        kubectl set image deployment/your-deployment your-container=${ECR_URI}:latest
-                    """
+                    sh "ECR rmi ${IMAGE_NAME}"
                 }
             }
-        }
-    }
+        }
+        
+    }
 }
+
