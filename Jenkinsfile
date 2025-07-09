@@ -14,8 +14,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-               git 
-                'https://github.com/your-username/your-repo.git'
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/main']],
+                          userRemoteConfigs: [[
+                              url: "https://github.com/Balajiu97/Jenkinsfile_ECR.git"
  
             }
         }
