@@ -1,43 +1,57 @@
+
 pipeline {
     agent any
 
     environment {
         AWS_REGION = 'ap-south-1'
-        ECR_REPO_NAME = 'balaji-ecr-repo'
-        IMAGE_TAG = "latest"
-        ACCOUNT_ID = '263336852738'
-        ECR_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}"
+        AWS_ACCOUNT_ID = '263336852738'    
+        ECR_REPO_NAME = 'Balaji/balaji-ecr-repo'           
+        IMAGE_TAG = 'v2'
+        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        FULL_IMAGE_NAME = "${ECR_REGISTRY}/${ECR_REPO_NAME}:${IMAGE_TAG}"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/Balajiu97/Jenkinsfile_ECR.git'
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${ECR_REPO_NAME}:${IMAGE_TAG} ."
+                script {
+                    sh 'docker build -t $ECR_REPO_NAME:$IMAGE_TAG .'
+                }
+            }
+        }
+
+        stage('Tag Image') {
+            steps {
+                script {
+                    sh 'docker tag $ECR_REPO_NAME:$IMAGE_TAG $FULL_IMAGE_NAME'
+                }
             }
         }
 
         stage('Login to ECR') {
             steps {
-                sh """
-                    aws --region $AWS_REGION ecr get-login-password \
-                    | docker login --username AWS --password-stdin $ECR_URI
-                """
+                script {
+                    sh '''
+                        aws ecr get-login-password --region $AWS_REGION | \
+                        docker login --username AWS --password-stdin $ECR_REGISTRY
+                    '''
+                }
             }
         }
 
-        stage('Tag and Push Image') {
+        stage('Push to ECR') {
             steps {
-                sh """
-                    docker tag ${ECR_REPO_NAME}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}
-                    docker push ${ECR_URI}:${IMAGE_TAG}
-                """
+                script {
+                    sh 'docker push $FULL_IMAGE_NAME'
+                }
             }
-        }
-    }
+        }
+    }
 }
+
